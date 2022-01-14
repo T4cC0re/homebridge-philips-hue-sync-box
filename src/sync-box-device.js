@@ -33,7 +33,6 @@ export class SyncBoxDevice {
     isIntensity = (intensity) => {
 
         if (this.state.execution.mode == 'powersave' || this.state.execution.mode == 'passthrough') {
-            this.platform.log(`not animating. Thus '${intensity}' does not match`);
             return false;
         }
 
@@ -103,10 +102,10 @@ export class SyncBoxDevice {
             .on('set', (value, callback) => {
                 // Saves the changes
                 if (value) {
-                    this.platform.log.debug('Switch state to video');
+                    this.platform.log.debug('Switch state to lastSyncMode');
                     this.platform.limiter.schedule(() => {
                             return this.platform.client.updateExecution({
-                                'mode': mode || this.getLastSyncMode()
+                                'mode': this.getLastSyncMode()
                             });
                         })
                         .then(() => {}, () => {
@@ -135,7 +134,7 @@ export class SyncBoxDevice {
                             return this.platform.client.updateExecution({ 'brightness': Math.round((value / 100.0) * 200) });
                         })
                         .then(() => {}, () => {
-                            this.platform.log('Failed to switch state to ON');
+                            this.platform.log('Failed to set brightness');
                         });
                 }
                 // Performs the callback
@@ -166,7 +165,7 @@ export class SyncBoxDevice {
             .on('set', (value, callback) => {
                 // Saves the changes
                 if (value) {
-                    this.platform.log.debug('Switch state to video');
+                    this.platform.log.debug('Switch state to lastSyncMode');
                     this.platform.limiter.schedule(() => {
                             return this.platform.client.updateExecution({
                                 'mode': mode || this.getLastSyncMode()
@@ -328,7 +327,14 @@ export class SyncBoxDevice {
         this.newDeviceAccessories = [];
         this.deviceAccessories = [];
 
-        let powerState = this.addAccessory("Brightness");
+        let brightnessState = null
+        if (!platform.config.hideBrightness) {
+          platform.log(`hideBrightness is disabled. Registering Lightbulb accessory`)
+          brightnessState = this.addAccessory("Brightness");
+        } else {
+          platform.log(`hideBrightness is enabled. Skipping Lightbulb accessory`)
+        }
+        let powerState = this.addAccessory("Power");
         let modeState = this.addAccessory("Mode");
         let intensityState = this.addAccessory("Intensity");
         let inputState = this.addAccessory("Input");
@@ -358,7 +364,12 @@ export class SyncBoxDevice {
                 .setCharacteristic(Characteristic.SerialNumber, state.device.uniqueId);
         }
 
-        this.setUpBrightness(powerState, "Brightness")
+        if (!platform.config.hideBrightness) {
+          platform.log(`hideBrightness is disabled. Registering Brightness service`)
+          this.setUpBrightness(brightnessState, "Brightness")
+        } else {
+          platform.log(`hideBrightness is enabled. Skipping Brightness service`)
+        }
         this.setUpModeSwitch(powerState, "Power", null)
 
         this.setUpModeSwitch(modeState, "Video", "video")

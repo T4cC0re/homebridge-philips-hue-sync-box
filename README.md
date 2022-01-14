@@ -1,24 +1,22 @@
-# homebridge-philips-hue-sync-box
+# homebridge-philips-hue-sync-box-switches
 
-Homebridge plugin for the Philips Hue Sync Box. 
+Homebridge plugin for the Philips Hue Sync Box. Adapted to be Switch accessories. This is useful for automation purposes.
 
-The Sync Box is exposed as a lightbulb. The following features are currently supported:
+The Sync Box is exposed as a lightbulb and/or a switch (configurable). The following features are currently supported:
 * On/Off
 * Brightness
 
-You can also enable additional TV accessories that support:
+You also have additional Switch accessories that support:
 * Switching HDMI inputs
 * Switching modes
 * Switching intensity
-
-**Important**: TV accessories must be added to HomeKit manually, the logs show the pin for adding them (should be the same pin as for the plugin).
 
 ## Installation
 
 Install the plugin via npm:
 
 ```bash
-npm install homebridge-philips-hue-sync-box -g
+npm install homebridge-philips-hue-sync-box-switches -g
 ```
 
 ## Prepare Sync Box
@@ -28,7 +26,7 @@ You have to create new credentials to communicate with the Philips Hue Sync Box:
 * Make sure synchronization is stopped
 * Make an HTTP POST request to `https://<SYNC-BOX-IP>/api/v1/registrations`
 * The body of the request has to be JSON: `{ "appName": "homebridge", "appSecret": "MDAwMTExMDAwMTExMDAwMTExMDAwMTExMDAwMTExMDA=", "instanceName": "homebridge" }`
-* One way to do this is to enter the following into the Terminal: `curl -H "Content-Type: application/json" -X POST -d '{"appName": "homebridge", "appSecret":"MDAwMTExMDAwMTExMDAwMTExMDAwMTExMDAwMTExMDA=", "instanceName": "homebridge"}' https://<SYNC-BOX-IP>/api/v1/registrations`, replacing `<SYNC-BOX-IP>` with the IP address of your Sync Box.
+* One way to do this is to enter the following into the Terminal: `curl -k -H "Content-Type: application/json" -X POST -d '{"appName": "homebridge", "appSecret":"MDAwMTExMDAwMTExMDAwMTExMDAwMTExMDAwMTExMDA=", "instanceName": "homebridge"}' https://<SYNC-BOX-IP>/api/v1/registrations`, replacing `<SYNC-BOX-IP>` with the IP address of your Sync Box.
 * The first response to the request will be `{ "code": 16, "message": "Invalid State" }`
 * IMPORTANT: Now, click and hold the button of the Sync Box until the LED switches to green. Immediately release the button as soon as the LED is green! It will switch to white again.
 * Immediately make the request again
@@ -40,17 +38,12 @@ You have to create new credentials to communicate with the Philips Hue Sync Box:
 {
     "platforms": [
         {
-            "platform": "PhilipsHueSyncBoxPlatform",
+            "platform": "PhilipsHueSyncBoxSwitchesPlatform",
             "syncBoxIpAddress": "<SYNC-BOX-IP-ADDRESS>",
             "syncBoxApiAccessToken": "<ACCESS-TOKEN>",
-            "defaultOnMode": "video",
             "defaultOffMode": "passthrough",
-            "tvAccessory": false,
-            "tvAccessoryType": "tv",
-            "modeTvAccessory": false,
-            "modeTvAccessoryType": "tv",
-            "intensityTvAccessory": false,
-            "intensityTvAccessoryType": "tv",
+            "syncBoxNameOverride": "Sync box",
+            "hideBrightness": false,
             "isApiEnabled": false,
             "apiPort": 40220,
             "apiToken": "<YOUR-TOKEN>"
@@ -63,21 +56,11 @@ You have to create new credentials to communicate with the Philips Hue Sync Box:
 
 **syncBoxApiAccessToken**: The access token that you get while registration.
 
-**defaultOnMode** (optional): The mode that is used when switching the Sync Box on via HomeKit. Defaults to `video`. Possible values are `video`, `music`, `game` or `lastSyncMode`.
-
 **defaultOffMode** (optional): The mode that is used when switching the Sync Box off via HomeKit. Defaults to `passthrough`. Possible values are `powersave` or `passthrough`.
 
-**tvAccessory** (optional): Enables a TV Accessory for switching the inputs of the Sync Box. Defaults to `false`.
+**syncBoxNameOverride** (optional): Set a different name on this instance if you have multiple boxes.
 
-**tvAccessoryType** (optional): Type of icon that the Apple Home app should show. Possible values are `tv`, `settopbox`, `tvstick` or `audioreceiver`. Defaults to `tv`.
-
-**modeTvAccessory** (optional): Enables a TV Accessory for switching the modes (`video`, `music`, `game`) of the Sync Box. Defaults to `false`.
-
-**modeTvAccessoryType** (optional): Type of icon that the Apple Home app should show. Possible values are `tv`, `settopbox`, `tvstick` or `audioreceiver`. Defaults to `tv`.
-
-**intensityTvAccessory** (optional): Enables a TV Accessory for switching the intensity (`subtle`, `moderate`, `high`, `intense`) of the Sync Box. Defaults to `false`.
-
-**intensityTvAccessoryType** (optional): Type of icon that the Apple Home app should show. Possible values are `tv`, `settopbox`, `tvstick` or `audioreceiver`. Defaults to `tv`.
+**hideBrightness** (optional): When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between `defaultOffMode` and the last sync mode. When false (default), you will have a Light accessory.
 
 **isApiEnabled** (optional): Enables an HTTP API for controlling the Sync Box. Defaults to `false`. See **API** for more information.
 
@@ -89,7 +72,7 @@ You have to create new credentials to communicate with the Philips Hue Sync Box:
 
 This plugin also provides an HTTP API to control some features of the Sync Box. It has been created so that you can further automate the system with HomeKit shortcuts. Starting with iOS 13, you can use shortcuts for HomeKit automation. Those automations that are executed on the HomeKit coordinator (i.e. iPad, AppleTV or HomePod) also support HTTP requests, which means you can automate your Sync Box without annoying switches and buttons exposed in HomeKit.
 
-If the API is enabled, it can be reached at the specified port on the host of this plugin. 
+If the API is enabled, it can be reached at the specified port on the host of this plugin.
 ```
 http://<YOUR-HOST-IP-ADDRESS>:<apiPort>
 ```

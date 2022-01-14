@@ -1,13 +1,14 @@
 {
-  "name": "homebridge-philips-hue-sync-box",
-  "version": "0.7.6",
-  "description": "Homebridge plugin for the Philips Hue Sync Box. ",
+  "name": "homebridge-philips-hue-sync-box-switches",
+  "version": "0.8.0",
+  "description": "Homebridge plugin for the Philips Hue Sync Box. Adapted to be Switch accessories.",
   "license": "MIT",
   "type": "module",
   "keywords": [
     "homebridge-plugin",
     "homebridge",
     "homebridge-philips-hue-sync-box",
+    "homebridge-philips-hue-sync-box-switches",
     "philips-hue",
     "hue"
   ],
@@ -17,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/lukasroegner/homebridge-philips-hue-sync-box.git"
+    "url": "git://github.com/T4cC0re/homebridge-philips-hue-sync-box-switches.git"
   },
   "bugs": {
-    "url": "http://github.com/lukasroegner/homebridge-philips-hue-sync-box/issues"
+    "url": "http://github.com/T4cC0re/homebridge-philips-hue-sync-box-switches/issues"
   },
   "engines": {
     "node": ">=0.12.0",

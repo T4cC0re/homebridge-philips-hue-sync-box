@@ -1,8 +1,8 @@
 {
-    "pluginAlias": "PhilipsHueSyncBoxPlatform",
+    "pluginAlias": "PhilipsHueSyncBoxSwitchesPlatform",
     "pluginType": "platform",
-    "headerDisplay": "Homebridge plugin for the Philips Hue Sync Box. Important: TV accessories must be added to HomeKit manually, the logs show the pin for adding them (should be the same pin as for the plugin).",
-    "footerDisplay": "For help please visit the [GitHub repository](https://github.com/lukasroegner/homebridge-philips-hue-sync-box).",
+    "headerDisplay": "Homebridge plugin for the Philips Hue Sync Box. Adapted to be Switch accessories. This is useful for automation purposes",
+    "footerDisplay": "For help please visit the [GitHub repository](https://github.com/T4cC0re/homebridge-philips-hue-sync-box-switches).",
     "schema": {
         "type": "object",
         "properties": {
@@ -31,6 +31,13 @@
                 "required": false,
                 "placeholder": "passthrough",
                 "description": "The mode that is used when switching the Sync Box off via HomeKit. Possible values are 'powersave' or 'passthrough'."
+            },
+            "hideBrightness": {
+                "title": "Hide Brightness",
+                "type": "string",
+                "required": false,
+                "placeholder": true,
+                "description": "When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between 'Default OFF Mode' and the last sync mode. When false, you will have a Light accessory."
             },
             "isApiEnabled": {
                 "title": "Enable API",

@@ -9,7 +9,7 @@ import {
  *     functions for communicating with HomeKit.
  */
 export default (homebridge) => {
-  homebridge.registerPlatform('homebridge-philips-hue-sync-box',
-                              'PhilipsHueSyncBoxPlatform',
+  homebridge.registerPlatform('homebridge-philips-hue-sync-box-switches',
+                              'PhilipsHueSyncBoxSwitchesPlatform',
                               PhilipsHueSyncBoxPlatform, true);
 }

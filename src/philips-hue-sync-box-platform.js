@@ -13,8 +13,8 @@ import SyncBoxApi from './sync-box-api.js';
 export class PhilipsHueSyncBoxPlatform {
     config = {};
     log = null;
-    pluginName = 'homebridge-philips-hue-sync-box';
-    platformName = 'PhilipsHueSyncBoxPlatform';
+    pluginName = 'homebridge-philips-hue-sync-box-switches';
+    platformName = 'PhilipsHueSyncBoxSwitchesPlatform';
 
     constructor(log, config, api) {
         // Saves objects for functions
@@ -42,6 +42,7 @@ export class PhilipsHueSyncBoxPlatform {
         this.config.syncBoxNameOverride = this.config.syncBoxNameOverride || null;
         this.config.defaultOffMode = this.config.defaultOffMode || 'passthrough';
         this.config.isApiEnabled = this.config.isApiEnabled || false;
+        this.config.hideBrightness = this.config.hideBrightness || false;
         this.config.apiPort = this.config.apiPort || 40220;
         this.config.apiToken = this.config.apiToken || null;
         this.config.requestsPerSecond = 5;
