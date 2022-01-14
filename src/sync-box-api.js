@@ -1,5 +1,5 @@
 
-const http = require('http');
+import http from 'http';
 
 /**
  * Represents the API.
@@ -51,7 +51,7 @@ function SyncBoxApi(platform) {
                     response.end();
                     return;
                 }
-            
+
                 // Validates the body
                 let body = null;
                 if (payload && payload.length > 0) {
@@ -63,7 +63,7 @@ function SyncBoxApi(platform) {
                         response.end();
                     }
                 }
-                
+
                 // Performs the action based on the method
                 switch (request.method) {
                     case 'GET':
@@ -204,4 +204,4 @@ SyncBoxApi.prototype.handlePost = function (body, response) {
 /**
  * Defines the export of the file.
  */
-module.exports = SyncBoxApi;
+export default SyncBoxApi;

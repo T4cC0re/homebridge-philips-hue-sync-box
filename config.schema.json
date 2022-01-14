@@ -19,12 +19,11 @@
                 "required": true,
                 "description": "The access token that you get while registration."
             },
-            "defaultOnMode": {
-                "title": "Default ON mode",
+            "syncBoxNameOverride": {
+                "title": "Sync Box name override",
                 "type": "string",
                 "required": false,
-                "placeholder": "video",
-                "description": "The mode that is used when switching the Sync Box on via HomeKit. Possible values are 'video', 'music', 'game' or 'lastSyncMode'."
+                "description": "Set a different name on this instance if you have multiple boxes."
             },
             "defaultOffMode": {
                 "title": "Default OFF mode",
@@ -32,60 +31,6 @@
                 "required": false,
                 "placeholder": "passthrough",
                 "description": "The mode that is used when switching the Sync Box off via HomeKit. Possible values are 'powersave' or 'passthrough'."
-            },
-            "tvAccessory": {
-                "title": "Enable HDMI TV",
-                "type": "boolean",
-                "default": false,
-                "required": false,
-                "description": "Enables a TV Accessory for switching the inputs of the Sync Box."
-            },
-            "tvAccessoryType": {
-                "title": "HDMI TV HomeKit Type",
-                "type": "string",
-                "default": "TV",
-                "oneOf": [
-                    { "title": "TV", "enum": ["tv"] },
-                    { "title": "Set Top Box", "enum": ["settopbox"] },
-                    { "title": "TV Stick", "enum": ["tvstick"] },
-                    { "title": "Audio Receiver", "enum": ["audioreceiver"] }
-                ]
-            },
-            "modeTvAccessory": {
-                "title": "Enable Mode TV",
-                "type": "boolean",
-                "default": false,
-                "required": false,
-                "description": "Enables a TV Accessory for switching the modes of the Sync Box."
-            },
-            "modeTvAccessoryType": {
-                "title": "Mode TV HomeKit Type",
-                "type": "string",
-                "default": "TV",
-                "oneOf": [
-                    { "title": "TV", "enum": ["tv"] },
-                    { "title": "Set Top Box", "enum": ["settopbox"] },
-                    { "title": "TV Stick", "enum": ["tvstick"] },
-                    { "title": "Audio Receiver", "enum": ["audioreceiver"] }
-                ]
-            },
-            "intensityTvAccessory": {
-                "title": "Enable Intensity TV",
-                "type": "boolean",
-                "default": false,
-                "required": false,
-                "description": "Enables a TV Accessory for switching the intensity of the Sync Box."
-            },
-            "intensityTvAccessoryType": {
-                "title": "Intensity TV HomeKit Type",
-                "type": "string",
-                "default": "TV",
-                "oneOf": [
-                    { "title": "TV", "enum": ["tv"] },
-                    { "title": "Set Top Box", "enum": ["settopbox"] },
-                    { "title": "TV Stick", "enum": ["tvstick"] },
-                    { "title": "Audio Receiver", "enum": ["audioreceiver"] }
-                ]
             },
             "isApiEnabled": {
                 "title": "Enable API",

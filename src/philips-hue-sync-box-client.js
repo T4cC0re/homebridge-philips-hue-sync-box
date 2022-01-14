@@ -1,45 +1,43 @@
 
-const request = require('request');
+import request from 'request';
+export class PhilipsHueSyncBoxClient {
+  stateUpdate = null
+  constructor (config, log) {
+    this.config = config;
+    this.log= log;
+    log("asdf");
+  log(config);
+log(this.config);
+  }
 
-/**
- * Represents the client for communicating with the Philips Hue Sync Box.
- * @param platform The PhilipsHueSyncBoxPlatform instance.
- */
-function PhilipsHueSyncBoxClient(platform) {
-    const client = this;
-
-    // Sets the platform for further use
-    client.platform = platform;
-}
-
-/**
- * Gets the current state of the Sync Box.
- */
-PhilipsHueSyncBoxClient.prototype.getState = function () {
-    const client = this;
-    
-    // Sends the request
-    return client.send('GET', '', null);
-}
-
+  /**
+   * Gets the current state of the Sync Box.
+   */
+  getState = async () => {
+    let data = await this.send('GET', '', null);
+    if (this.stateUpdate) {
+      this.stateUpdate(data);
+    }
+    return data
+  }
 /**
  * Updates the execution settings of the Sync Box.
  */
-PhilipsHueSyncBoxClient.prototype.updateExecution = function (settings) {
-    const client = this;
-    
-    // Sends the request
-    return client.send('PUT', '/execution', settings);
+ updateExecution = async (settings) => {
+    let data = await this.send('PUT', '/execution', settings);
+    // await the actual operation, but not this to make this fetch async.
+    this.getState()
+    return data
 }
 
 /**
  * Updates the Hue settings of the Sync Box.
  */
-PhilipsHueSyncBoxClient.prototype.updateHue = function (settings) {
-    const client = this;
-    
-    // Sends the request
-    return client.send('PUT', '/hue', settings);
+ updateHue = async (settings)  => {
+    let data = await this.send('PUT', '/hue', settings);
+    // await the actual operation, but not this to make this fetch async.
+    this.getState()
+    return data
 }
 
 /**
@@ -48,38 +46,40 @@ PhilipsHueSyncBoxClient.prototype.updateHue = function (settings) {
  * @param uri The uri path to the endpoint.
  * @param body The body of the request.
  */
-PhilipsHueSyncBoxClient.prototype.send = function (method, uri, body) {
-    const client = this;
-
+ send = (method, uri, body) => {
+   console.error("asdf");
+   this.log("asdf 2");
     // Checks if all required information is provided
-    if (!client.platform.config.syncBoxIpAddress) {
-        client.platform.log('No Sync Box IP address provided.');
+    if (!this.config.syncBoxIpAddress) {
+        this.log('No Sync Box IP address provided.');
         return;
     }
-    if (!client.platform.config.syncBoxApiAccessToken) {
-        client.platform.log('No access token for the Sync Box provided.');
+    if (!this.config.syncBoxApiAccessToken) {
+        this.log('No access token for the Sync Box provided.');
         return;
     }
+
+this.log(method, uri, body);
 
     // Sends out the request
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         request({
-            uri: 'https://' + client.platform.config.syncBoxIpAddress + '/api/v1' + uri,
+            uri: 'https://' + this.config.syncBoxIpAddress + '/api/v1' + uri,
             headers: {
-                'Authorization': 'Bearer ' + client.platform.config.syncBoxApiAccessToken
+                'Authorization': 'Bearer ' + this.config.syncBoxApiAccessToken
             },
             method: method,
             body: body,
             json: true,
             rejectUnauthorized: false
-        }, function (error, response, body) {
+        }, (error, response, body) => {
 
             // Checks if the API returned a positive result
             if (error || response.statusCode != 200) {
                 if (error) {
-                    client.platform.log('Error while communicating with the Sync Box. Error: ' + error);
+                    this.log('Error while communicating with the Sync Box. Error: ' + error);
                 } else if (response.statusCode != 200) {
-                    client.platform.log('Error while communicating with the Sync Box. Status Code: ' + response.statusCode);
+                    this.log('Error while communicating with the Sync Box. Status Code: ' + response.statusCode);
                 }
                 reject(error);
             }
@@ -90,7 +90,4 @@ PhilipsHueSyncBoxClient.prototype.send = function (method, uri, body) {
     });
 }
 
-/**
- * Defines the export of the file.
- */
-module.exports = PhilipsHueSyncBoxClient;
+}

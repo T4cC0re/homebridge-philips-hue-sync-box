@@ -1,10 +1,10 @@
 
-const PhilipsHueSyncBoxPlatform = require('./src/philips-hue-sync-box-platform');
+import { PhilipsHueSyncBoxPlatform } from './src/philips-hue-sync-box-platform.js';
 
 /**
  * Defines the export of the plugin entry point.
  * @param homebridge The homebridge API that contains all classes, objects and functions for communicating with HomeKit.
  */
-module.exports = function (homebridge) {
+export default (homebridge) => {
     homebridge.registerPlatform('homebridge-philips-hue-sync-box', 'PhilipsHueSyncBoxPlatform', PhilipsHueSyncBoxPlatform, true);
 }

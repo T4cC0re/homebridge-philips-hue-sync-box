@@ -1,9 +1,9 @@
+defaultOffMode
+import Bottleneck from 'bottleneck';
 
-const Bottleneck = require('bottleneck');
-
-const PhilipsHueSyncBoxClient = require('./philips-hue-sync-box-client');
-const SyncBoxDevice = require('./sync-box-device');
-const SyncBoxApi = require('./sync-box-api');
+import { PhilipsHueSyncBoxClient } from './philips-hue-sync-box-client.js';
+import { SyncBoxDevice } from './sync-box-device.js';
+import SyncBoxApi from './sync-box-api.js';
 
 /**
  * Initializes a new platform instance for the Philips Hue Sync Box plugin.
@@ -11,117 +11,120 @@ const SyncBoxApi = require('./sync-box-api');
  * @param config The configuration that is passed to the plugin (from the config.json file).
  * @param api The API instance of homebridge (may be null on older homebridge versions).
  */
-function PhilipsHueSyncBoxPlatform(log, config, api) {
-    const platform = this;
+export class PhilipsHueSyncBoxPlatform {
+  config = {};
+  log = null;
+  pluginName = 'homebridge-philips-hue-sync-box';
+  platformName = 'PhilipsHueSyncBoxPlatform';
 
+  constructor (log, config, api) {
     // Saves objects for functions
-    platform.Accessory = api.platformAccessory;
-    platform.Categories = api.hap.Accessory.Categories;
-    platform.Service = api.hap.Service;
-    platform.Characteristic = api.hap.Characteristic;
-    platform.UUIDGen = api.hap.uuid;
-    platform.hap = api.hap;
-    platform.pluginName = 'homebridge-philips-hue-sync-box';
-    platform.platformName = 'PhilipsHueSyncBoxPlatform';
+    this.Accessory = api.platformAccessory;
+    this.Categories = api.hap.Accessory.Categories;
+    this.Service = api.hap.Service;
+    this.Characteristic = api.hap.Characteristic;
+    this.UUIDGen = api.hap.uuid;
+    this.hap = api.hap;
 
     // Checks whether a configuration is provided, otherwise the plugin should not be initialized
     if (!config) {
-        return;
+      return;
     }
 
     // Defines the variables that are used throughout the platform
-    platform.log = log;
-    platform.config = config;
-    platform.device = null;
-    platform.accessories = [];
+    this.log = log;
+    this.config = Object.assign(this.config, config);
+    this.device = null;
+    this.accessories = [];
+
+log(config, this.config);
+
 
     // Initializes the configuration
-    platform.config.syncBoxIpAddress = platform.config.syncBoxIpAddress || null;
-    platform.config.syncBoxApiAccessToken = platform.config.syncBoxApiAccessToken || null;
-    platform.config.defaultOnMode = platform.config.defaultOnMode || 'video';
-    platform.config.defaultOffMode = platform.config.defaultOffMode || 'passthrough';
-    platform.config.isApiEnabled = platform.config.isApiEnabled || false;
-    platform.config.apiPort = platform.config.apiPort || 40220;
-    platform.config.apiToken = platform.config.apiToken || null;
-    platform.config.tvAccessory = platform.config.tvAccessory || false;
-    platform.config.tvAccessoryType = platform.config.tvAccessoryType || 'tv';
-    platform.config.modeTvAccessory = platform.config.modeTvAccessory || false;
-    platform.config.modeTvAccessoryType = platform.config.modeTvAccessoryType || 'tv';
-    platform.config.intensityTvAccessory = platform.config.intensityTvAccessory || false;
-    platform.config.intensityTvAccessoryType = platform.config.intensityTvAccessoryType || 'tv';
-    platform.config.requestsPerSecond = 5;
-    platform.config.updateInterval = 10000;
+    this.config.syncBoxIpAddress = this.config.syncBoxIpAddress || null;
+    this.config.syncBoxApiAccessToken = this.config.syncBoxApiAccessToken || null;
+    this.config.syncBoxNameOverride = this.config.syncBoxNameOverride || null;
+    this.config.defaultOnMode = this.config.defaultOnMode || 'video';
+    this.config.defaultOffMode = this.config.defaultOffMode || 'passthrough';
+    this.config.isApiEnabled = this.config.isApiEnabled || false;
+    this.config.apiPort = this.config.apiPort || 40220;
+    this.config.apiToken = this.config.apiToken || null;
+    this.config.tvAccessory = this.config.tvAccessory || false;
+    this.config.tvAccessoryType = this.config.tvAccessoryType || 'tv';
+    this.config.modeTvAccessory = this.config.modeTvAccessory || false;
+    this.config.modeTvAccessoryType = this.config.modeTvAccessoryType || 'tv';
+    this.config.intensityTvAccessory = this.config.intensityTvAccessory || false;
+    this.config.intensityTvAccessoryType = this.config.intensityTvAccessoryType || 'tv';
+    this.config.ignoreTVAccessoryPowerToggle = this.config.ignoreTVAccessoryPowerToggle || false;
+    this.config.requestsPerSecond = 5;
+    this.config.updateInterval = 10000;
 
     // Initializes the limiter
-    platform.limiter = new Bottleneck({
-        maxConcurrent: 1,
-        minTime: 1000.0 / platform.config.requestsPerSecond
+    this.limiter = new Bottleneck({
+    maxConcurrent: 1,
+    minTime: 1000.0 / this.config.requestsPerSecond
     });
 
     // Checks whether the API object is available
     if (!api) {
-        platform.log('Homebridge API not available, please update your homebridge version!');
-        return;
+    this.log('Homebridge API not available, please update your homebridge version!');
+    return;
     }
 
     // Saves the API object to register new devices later on
-    platform.log('Homebridge API available.');
-    platform.api = api;
+    this.log('Homebridge API available.');
+    this.api = api;
 
     // Checks if all required information is provided
-    if (!platform.config.syncBoxIpAddress || !platform.config.syncBoxApiAccessToken) {
-        platform.log('No Sync Box IP address or access token provided.');
-        return;
+    if (!this.config.syncBoxIpAddress || !this.config.syncBoxApiAccessToken) {
+    this.log('No Sync Box IP address or access token provided.');
+    return;
     }
 
     // Initializes the client
-    platform.client = new PhilipsHueSyncBoxClient(this);
-    
+    this.client = new PhilipsHueSyncBoxClient(this.config, log);
+
     // Subscribes to the event that is raised when homebridge finished loading cached accessories
-    platform.api.on('didFinishLaunching', function () {
-        platform.log('Cached accessories loaded.');
+    this.api.on('didFinishLaunching', async () => {
+    this.log('Cached accessories loaded.');
+      try {
+        log(config, this.config, this.client);
 
-        // Initially gets the state
-        platform.limiter.schedule(function() { return platform.client.getState(); }).then(function(state) {
+        let state = await this.client.getState();
+        log(state);
+        // Creates the Sync Box instance
+        this.log('Create Sync Box.');
+        this.device = new SyncBoxDevice(this, state);
 
-            // Creates the Sync Box instance
-            platform.log('Create Sync Box.');
-            platform.device = new SyncBoxDevice(platform, state);
-
-            // Starts the timer for updating the Sync Box
-            setInterval(function() {
-                platform.limiter.schedule(function() { return platform.client.getState(); }).then(function(state) {
-                    platform.device.update(state);
-                }, function() {
-                    platform.log('Error while getting the state.');
-                });
-            }, platform.config.updateInterval);
-            
-            // Initialization completed
-            platform.log('Initialization completed.');
-
-            // Starts the API if requested
-            if (platform.config.isApiEnabled) {
-                platform.syncBoxApi = new SyncBoxApi(platform);
+        // Starts the timer for updating the Sync Box
+        setInterval(async () => {
+            try {
+              await this.client.getState();
+            } catch (e) {
+              this.log('Error while getting the state. Please check the access token.' + e);
             }
-        }, function() {
-            platform.log('Error while getting the state. Please check the access token.');
-        });
+        }, this.config.updateInterval);
+
+        // Initialization completed
+        this.log('Initialization completed.');
+
+        // Starts the API if requested
+        if (this.config.isApiEnabled) {
+          // this.syncBoxApi = new SyncBoxApi(platform);
+        }
+      } catch (e) {
+        this.log('Error while getting the state. Please check the access token.' + e);
+      }
     });
+  }
+
+
+  /**
+   * Configures a previously cached accessory.
+   * @param accessory The cached accessory.
+   */
+   configureAccessory = (accessory) =>  {
+      // Adds the cached accessory to the list
+      this.accessories.push(accessory);
+  }
 }
-
-/**
- * Configures a previously cached accessory.
- * @param accessory The cached accessory.
- */
-PhilipsHueSyncBoxPlatform.prototype.configureAccessory = function (accessory) {
-    const platform = this;
-
-    // Adds the cached accessory to the list
-    platform.accessories.push(accessory);
-}
-
-/**
- * Defines the export of the file.
- */
-module.exports = PhilipsHueSyncBoxPlatform;
