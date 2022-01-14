@@ -34,9 +34,9 @@
             },
             "hideBrightness": {
                 "title": "Hide Brightness",
-                "type": "string",
+                "type": "boolean",
                 "required": false,
-                "placeholder": true,
+                "placeholder": false,
                 "description": "When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between 'Default OFF Mode' and the last sync mode. When false, you will have a Light accessory."
             },
             "isApiEnabled": {
