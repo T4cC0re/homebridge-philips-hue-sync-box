@@ -33,6 +33,7 @@ export class SyncBoxDevice {
     isIntensity = (intensity) => {
 
         if (this.state.execution.mode == 'powersave' || this.state.execution.mode == 'passthrough') {
+            this.platform.log(`not animating. Thus '${intensity}' does not match`);
             return false;
         }
 
@@ -73,6 +74,80 @@ export class SyncBoxDevice {
         }
         this.deviceAccessories.push(accessory);
         return accessory
+    }
+
+    getBrightness = () => {
+        if (this.state && this.state.execution) {
+            return this.state.execution.brightness / 2;
+        }
+
+        return 0;
+    }
+
+    setUpBrightness = (accessory, name) => {
+        const {
+            Characteristic,
+            Service
+        } = this.platform;
+        // Updates the light bulb service
+        let service = accessory.getService(name);
+        if (!service) {
+            service = accessory.addService(Service.Lightbulb, name);
+        }
+
+        service.getCharacteristic(Characteristic.On)
+            .onGet(() => this.isOn(null));
+        service.getCharacteristic(Characteristic.Brightness)
+            .onGet(() => this.getBrightness());
+        service.getCharacteristic(Characteristic.On)
+            .on('set', (value, callback) => {
+                // Saves the changes
+                if (value) {
+                    this.platform.log.debug('Switch state to video');
+                    this.platform.limiter.schedule(() => {
+                            return this.platform.client.updateExecution({
+                                'mode': mode || this.getLastSyncMode()
+                            });
+                        })
+                        .then(() => {}, () => {
+                            this.platform.log('Failed to switch state to ON');
+                        });
+                } else {
+                    this.platform.log.debug('Switch state to OFF');
+                    this.platform.limiter.schedule(() => {
+                            return this.platform.client.updateExecution({
+                                'mode': this.platform.config.defaultOffMode
+                            });
+                        })
+                        .then(() => {}, () => {
+                            this.platform.log('Failed to switch state to OFF');
+                        });
+                }
+                // Performs the callback
+                callback(null);
+            });
+
+        service.getCharacteristic(Characteristic.Brightness)
+            .on('set', (value, callback) => {
+                // Saves the changes
+                if (value) {
+                    this.platform.limiter.schedule(() => {
+                            return this.platform.client.updateExecution({ 'brightness': Math.round((value / 100.0) * 200) });
+                        })
+                        .then(() => {}, () => {
+                            this.platform.log('Failed to switch state to ON');
+                        });
+                }
+                // Performs the callback
+                callback(null);
+            });
+
+        this.onUpdate(() => {
+            service.getCharacteristic(Characteristic.On)
+                .updateValue(this.isOn(null));
+            service.getCharacteristic(Characteristic.Brightness)
+                .updateValue(this.getBrightness());
+        })
     }
 
     setUpModeSwitch = (accessory, name, mode) => {
@@ -253,7 +328,10 @@ export class SyncBoxDevice {
         this.newDeviceAccessories = [];
         this.deviceAccessories = [];
 
-        let powerState = this.addAccessory("Power");
+        let powerState = this.addAccessory("Brightness");
+        let modeState = this.addAccessory("Mode");
+        let intensityState = this.addAccessory("Intensity");
+        let inputState = this.addAccessory("Input");
 
         // Registers the newly created accessories
         platform.api.registerPlatformAccessories(platform.pluginName, platform.platformName, this.newDeviceAccessories);
@@ -280,19 +358,21 @@ export class SyncBoxDevice {
                 .setCharacteristic(Characteristic.SerialNumber, state.device.uniqueId);
         }
 
+        this.setUpBrightness(powerState, "Brightness")
         this.setUpModeSwitch(powerState, "Power", null)
-        this.setUpModeSwitch(powerState, "Video Mode", "video")
-        this.setUpModeSwitch(powerState, "Music Mode", "music")
-        this.setUpModeSwitch(powerState, "Game Mode", "game")
-        this.setUpModeSwitch(powerState, "Passthrough Mode", "passthrough")
 
-        this.setUpIntensitySwitch(powerState, "Subtle Intensity", 'subtle')
-        this.setUpIntensitySwitch(powerState, "Moderate Intensity", 'moderate')
-        this.setUpIntensitySwitch(powerState, "High Intensity", 'high')
-        this.setUpIntensitySwitch(powerState, "Intense Intensity", 'intense')
+        this.setUpModeSwitch(modeState, "Video", "video")
+        this.setUpModeSwitch(modeState, "Music", "music")
+        this.setUpModeSwitch(modeState, "Game", "game")
+        this.setUpModeSwitch(modeState, "Passthrough", "passthrough")
+
+        this.setUpIntensitySwitch(intensityState, "Subtle", 'subtle')
+        this.setUpIntensitySwitch(intensityState, "Moderate", 'moderate')
+        this.setUpIntensitySwitch(intensityState, "High", 'high')
+        this.setUpIntensitySwitch(intensityState, "Intense", 'intense')
 
         for (let i = 1; i <= 4; i++) {
-            this.setUpInputSwitch(powerState, `HDMI ${i}`, `input${i}`)
+            this.setUpInputSwitch(inputState, `HDMI ${i}`, `input${i}`)
         }
 
         // Publishes the external accessories (i.e. the TV accessories)
