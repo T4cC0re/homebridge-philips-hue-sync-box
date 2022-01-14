@@ -1,4 +1,3 @@
-
 import http from 'http';
 
 /**
@@ -24,62 +23,66 @@ function SyncBoxApi(platform) {
     // Starts the server
     try {
         http.createServer(function (request, response) {
-            const payload = [];
+                const payload = [];
 
-            // Subscribes for events of the request
-            request.on('error', function () {
-                api.platform.log('API - Error received.');
-            }).on('data', function (chunk) {
-                payload.push(chunk);
-            }).on('end', function () {
+                // Subscribes for events of the request
+                request.on('error', function () {
+                        api.platform.log('API - Error received.');
+                    })
+                    .on('data', function (chunk) {
+                        payload.push(chunk);
+                    })
+                    .on('end', function () {
 
-                // Subscribes to errors when sending the response
-                response.on('error', function () {
-                    api.platform.log('API - Error sending the response.');
-                });
+                        // Subscribes to errors when sending the response
+                        response.on('error', function () {
+                            api.platform.log('API - Error sending the response.');
+                        });
 
-                // Validates the token
-                if (!request.headers['authorization']) {
-                    api.platform.log('Authorization header missing.');
-                    response.statusCode = 401;
-                    response.end();
-                    return;
-                }
-                if (request.headers['authorization'] !== api.platform.config.apiToken) {
-                    api.platform.log('Token invalid.');
-                    response.statusCode = 401;
-                    response.end();
-                    return;
-                }
+                        // Validates the token
+                        if (!request.headers['authorization']) {
+                            api.platform.log('Authorization header missing.');
+                            response.statusCode = 401;
+                            response.end();
+                            return;
+                        }
+                        if (request.headers['authorization'] !== api.platform.config.apiToken) {
+                            api.platform.log('Token invalid.');
+                            response.statusCode = 401;
+                            response.end();
+                            return;
+                        }
 
-                // Validates the body
-                let body = null;
-                if (payload && payload.length > 0) {
-                    try {
-                        body = JSON.parse(Buffer.concat(payload).toString());
-                    } catch (e) {
-                        api.platform.log('Body malformed.');
-                        response.statusCode = 400;
+                        // Validates the body
+                        let body = null;
+                        if (payload && payload.length > 0) {
+                            try {
+                                body = JSON.parse(Buffer.concat(payload)
+                                    .toString());
+                            } catch (e) {
+                                api.platform.log('Body malformed.');
+                                response.statusCode = 400;
+                                response.end();
+                            }
+                        }
+
+                        // Performs the action based on the method
+                        switch (request.method) {
+                        case 'GET':
+                            api.handleGet(response);
+                            return;
+
+                        case 'POST':
+                            api.handlePost(body, response);
+                            return;
+                        }
+
+                        api.platform.log('No action matched.');
+                        response.statusCode = 404;
                         response.end();
-                    }
-                }
-
-                // Performs the action based on the method
-                switch (request.method) {
-                    case 'GET':
-                        api.handleGet(response);
-                        return;
-
-                    case 'POST':
-                        api.handlePost(body, response);
-                        return;
-                }
-
-                api.platform.log('No action matched.');
-                response.statusCode = 404;
-                response.end();
-            });
-        }).listen(api.platform.config.apiPort, "0.0.0.0");
+                    });
+            })
+            .listen(api.platform.config.apiPort, "0.0.0.0");
         api.platform.log('API started.');
     } catch (e) {
         api.platform.log('API could not be started: ' + JSON.stringify(e));
@@ -94,35 +97,36 @@ SyncBoxApi.prototype.handleGet = function (response) {
     const api = this;
 
     // Gets the state of the device
-    api.platform.limiter.schedule(function() { return api.platform.client.getState(); }).then(function(state) {
-        response.setHeader('Content-Type', 'application/json');
-        response.write(JSON.stringify({
-            groupId: state.hue.groupId,
-            mode: state.execution.mode,
-            lastSyncMode: state.execution.lastSyncMode,
-            brightness: Math.round((state.execution.brightness / 200.0) * 100),
-            hdmiSource: state.execution.hdmiSource,
-            options: {
-                video: {
-                    intensity: state.execution.video.intensity,
-                    backgroundLighting: state.execution.video.backgroundLighting
-                },
-                game: {
-                    intensity: state.execution.game.intensity,
-                    backgroundLighting: state.execution.game.backgroundLighting
-                },
-                music: {
-                    intensity: state.execution.music.intensity
+    api.platform.limiter.schedule(function () { return api.platform.client.getState(); })
+        .then(function (state) {
+            response.setHeader('Content-Type', 'application/json');
+            response.write(JSON.stringify({
+                groupId: state.hue.groupId,
+                mode: state.execution.mode,
+                lastSyncMode: state.execution.lastSyncMode,
+                brightness: Math.round((state.execution.brightness / 200.0) * 100),
+                hdmiSource: state.execution.hdmiSource,
+                options: {
+                    video: {
+                        intensity: state.execution.video.intensity,
+                        backgroundLighting: state.execution.video.backgroundLighting
+                    },
+                    game: {
+                        intensity: state.execution.game.intensity,
+                        backgroundLighting: state.execution.game.backgroundLighting
+                    },
+                    music: {
+                        intensity: state.execution.music.intensity
+                    }
                 }
-            }
-        }));
-        response.statusCode = 200;
-        response.end();
-    }, function() {
-        api.platform.log('Error while getting the state.');
-        response.statusCode = 400;
-        response.end();
-    });
+            }));
+            response.statusCode = 200;
+            response.end();
+        }, function () {
+            api.platform.log('Error while getting the state.');
+            response.statusCode = 400;
+            response.end();
+        });
 }
 
 /**
@@ -182,23 +186,24 @@ SyncBoxApi.prototype.handlePost = function (body, response) {
 
     // Updates the execution state
     if (updateExecution) {
-        promises.push(api.platform.limiter.schedule(function() { return api.platform.client.updateExecution(newState); }));
+        promises.push(api.platform.limiter.schedule(function () { return api.platform.client.updateExecution(newState); }));
     }
 
     // Updates the Hue state
     if (body.groupId) {
-        promises.push(api.platform.limiter.schedule(function() { return api.platform.client.updateHue({ groupId: body.groupId }); }));
+        promises.push(api.platform.limiter.schedule(function () { return api.platform.client.updateHue({ groupId: body.groupId }); }));
     }
 
     // Waits for all promises to resolve
-    Promise.all(promises).then(function() {
-        response.statusCode = 200;
-        response.end();
-    }, function() {
-        api.platform.log('Failed to update state.');
-        response.statusCode = 400;
-        response.end();
-    });
+    Promise.all(promises)
+        .then(function () {
+            response.statusCode = 200;
+            response.end();
+        }, function () {
+            api.platform.log('Failed to update state.');
+            response.statusCode = 400;
+            response.end();
+        });
 }
 
 /**
