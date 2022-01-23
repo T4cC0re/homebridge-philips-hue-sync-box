@@ -83,6 +83,17 @@ export class SyncBoxDevice {
         return 0;
     }
 
+    removeBrightness = (accessory, name) => {
+      const {
+          Service
+      } = this.platform;
+      // Removes the light bulb service
+      let service = accessory.getService(name);
+      if (service) {
+          accessory.removeService(service);
+      }
+    }
+
     setUpBrightness = (accessory, name) => {
         const {
             Characteristic,
@@ -327,17 +338,46 @@ export class SyncBoxDevice {
         this.newDeviceAccessories = [];
         this.deviceAccessories = [];
 
-        let brightnessState = null
-        if (!platform.config.hideBrightness) {
-          platform.log(`hideBrightness is disabled. Registering Lightbulb accessory`)
-          brightnessState = this.addAccessory("Brightness");
-        } else {
-          platform.log(`hideBrightness is enabled. Skipping Lightbulb accessory`)
+        let brightnessState, powerState, modeState, intensityState, inputState = null
+
+        switch (true) {
+          case platform.config.hideBrightness && platform.config.unifiedAccessory:
+            platform.log(`unifiedAccessory is enabled. Only registering 1 accessory`);
+            powerState = this.addAccessory(this.platform.config.syncBoxNameOverride || this.state.device.name);
+            modeState = powerState;
+            intensityState = powerState;
+            inputState = powerState;
+            break;
+          case platform.config.unifiedAccessory:
+            platform.log(`unifiedAccessory is enabled. Only registering 1 accessory`);
+            brightnessState = this.addAccessory(this.platform.config.syncBoxNameOverride || this.state.device.name);
+            powerState = brightnessState;
+            modeState = brightnessState;
+            intensityState = brightnessState;
+            inputState = brightnessState;
+            break;
+          case platform.config.hideBrightness:
+            platform.log(`hideBrightness is enabled. Skipping Lightbulb accessory`)
+            platform.log(`unifiedAccessory is disabled. Registering all accessories`);
+            powerState = this.addAccessory("Power");
+            modeState = this.addAccessory("Mode");
+            intensityState = this.addAccessory("Intensity");
+            inputState = this.addAccessory("Input");
+            break;
+          default:
+            platform.log(`hideBrightness is disabled. Registering Lightbulb accessory`)
+            platform.log(`unifiedAccessory is disabled. Registering all accessories`);
+            brightnessState = this.addAccessory("Brightness");
+            powerState = this.addAccessory("Power");
+            modeState = this.addAccessory("Mode");
+            intensityState = this.addAccessory("Intensity");
+            inputState = this.addAccessory("Input");
+            break;
         }
-        let powerState = this.addAccessory("Power");
-        let modeState = this.addAccessory("Mode");
-        let intensityState = this.addAccessory("Intensity");
-        let inputState = this.addAccessory("Input");
+
+        if (!powerState || !modeState || !intensityState || !inputState || (!platform.config.hideBrightness && !brightnessState)) {
+          throw ("Something broke :/")
+        }
 
         // Registers the newly created accessories
         platform.api.registerPlatformAccessories(platform.pluginName, platform.platformName, this.newDeviceAccessories);
@@ -366,10 +406,12 @@ export class SyncBoxDevice {
 
         if (!platform.config.hideBrightness) {
           platform.log(`hideBrightness is disabled. Registering Brightness service`)
-          this.setUpBrightness(brightnessState, "Brightness")
+          this.setUpBrightness(brightnessState, "Brightness");
         } else {
-          platform.log(`hideBrightness is enabled. Skipping Brightness service`)
+          platform.log(`hideBrightness is enabled. Removing Brightness service`)
+          this.removeBrightness(brightnessState || powerState, "Brightness");
         }
+
         this.setUpModeSwitch(powerState, "Power", null)
 
         this.setUpModeSwitch(modeState, "Video", "video")

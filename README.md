@@ -62,6 +62,8 @@ You have to create new credentials to communicate with the Philips Hue Sync Box:
 
 **hideBrightness** (optional): When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between `defaultOffMode` and the last sync mode. When false (default), you will have a Light accessory.
 
+**unifiedAccessory** (optional):When true, there will be only one accessory, instead of one for each mode, intensity, and input. If `hideBrightness` is true, this will be a switch, a lightbulb otherwise. When toggling this, you need to recreate ALL automations which interact with this accessory!
+
 **isApiEnabled** (optional): Enables an HTTP API for controlling the Sync Box. Defaults to `false`. See **API** for more information.
 
 **apiPort** (optional): The port that the API (if enabled) runs on. Defaults to `40220`, please change this setting of the port is already in use.

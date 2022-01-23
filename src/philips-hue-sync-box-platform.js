@@ -43,6 +43,7 @@ export class PhilipsHueSyncBoxPlatform {
         this.config.defaultOffMode = this.config.defaultOffMode || 'passthrough';
         this.config.isApiEnabled = this.config.isApiEnabled || false;
         this.config.hideBrightness = this.config.hideBrightness || false;
+        this.config.unifiedAccessory = this.config.unifiedAccessory || false;
         this.config.apiPort = this.config.apiPort || 40220;
         this.config.apiToken = this.config.apiToken || null;
         this.config.requestsPerSecond = 5;

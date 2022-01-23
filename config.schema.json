@@ -37,7 +37,14 @@
                 "type": "boolean",
                 "required": false,
                 "placeholder": false,
-                "description": "When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between 'Default OFF Mode' and the last sync mode. When false, you will have a Light accessory."
+                "description": "When true, no Light accessory will be presented. Instead you will see a 'Power' switch to toggle between 'Default OFF Mode' and the last sync mode. When false, you will have a Light accessory. When toggling this, you need to recreate any automations which act on the brightness of this accessory!"
+            },
+            "unifiedAccessory": {
+                "title": "Unified Accessory",
+                "type": "boolean",
+                "required": false,
+                "placeholder": false,
+                "description": "When true, there will be only one accessory, instead of one for each mode, intensity, and input. If `hideBrightness` is true, this will be a switch, a lightbulb otherwise. When toggling this, you need to recreate ALL automations which interact with this accessory!"
             },
             "isApiEnabled": {
                 "title": "Enable API",
